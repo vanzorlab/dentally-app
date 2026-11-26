@@ -1,0 +1,6 @@
+{
+  "name": "Dentally",
+  "description": "Asisten virtual mHealth edukatif dan interaktif untuk kebersihan mulut & gigi remaja dengan kalkulator OHI-S, gamifikasi karakter gigi, dan pelacak sikat gigi harian.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

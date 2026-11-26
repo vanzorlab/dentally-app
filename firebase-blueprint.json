@@ -1,0 +1,149 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile data, Gmail identity, and dental gamification progress for Dentally",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "streakDays": { "type": "integer" },
+        "toothHealthPercent": { "type": "integer" },
+        "toothStage": { "type": "string" },
+        "level": { "type": "integer" },
+        "completedHabitsCount": { "type": "integer" },
+        "totalHabitsCount": { "type": "integer" },
+        "latestOhisScore": { "type": "number" },
+        "latestOhisCategory": { "type": "string" },
+        "isCalendarSynced": { "type": "boolean" },
+        "morningReminderTime": { "type": "string" },
+        "nightReminderTime": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "email", "updatedAt"]
+    },
+    "Habit": {
+      "title": "Habit",
+      "description": "Daily brushing and oral care habits per user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "timeOfDay": { "type": "string" },
+        "isCompleted": { "type": "boolean" },
+        "isBadHabit": { "type": "boolean" },
+        "category": { "type": "string" },
+        "date": { "type": "string" },
+        "iconKey": { "type": "string" },
+        "orderIndex": { "type": "integer" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "date", "isCompleted", "updatedAt"]
+    },
+    "DailyMood": {
+      "title": "DailyMood",
+      "description": "Daylio-style daily tooth mood and emotional tracking per user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "moodScore": { "type": "integer" },
+        "moodLabel": { "type": "string" },
+        "moodSubEmoji": { "type": "string" },
+        "dentalFeel": { "type": "string" },
+        "note": { "type": "string" },
+        "activities": {
+          "type": "array"
+        },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "date", "moodScore", "moodLabel", "updatedAt"]
+    },
+    "OhisRecord": {
+      "title": "OhisRecord",
+      "description": "Recorded OHI-S oral hygiene assessments per user",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string" },
+        "debrisScore": { "type": "number" },
+        "calculusScore": { "type": "number" },
+        "totalScore": { "type": "number" },
+        "category": { "type": "string" },
+        "aiRecommendation": { "type": "string" },
+        "notes": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "date", "debrisScore", "calculusScore", "totalScore", "category", "updatedAt"]
+    },
+    "SharedAiKnowledge": {
+      "title": "SharedAiKnowledge",
+      "description": "Anonymized cross-user collective AI learning pool (typing patterns, slang, popular interests, topic depth) shared across all Dentally users",
+      "type": "object",
+      "properties": {
+        "lastContributorUid": { "type": "string" },
+        "totalCollectiveInteractions": { "type": "integer" },
+        "gueLoUsersCount": { "type": "integer" },
+        "akuKamuUsersCount": { "type": "integer" },
+        "shortStyleCount": { "type": "integer" },
+        "wkwkCount": { "type": "integer" },
+        "hahaCount": { "type": "integer" },
+        "heheCount": { "type": "integer" },
+        "knownSlang": { "type": "array" },
+        "popularInterests": { "type": "array" },
+        "learnedInsights": { "type": "array" },
+        "topicCountsJson": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["lastContributorUid", "totalCollectiveInteractions", "updatedAt"]
+    },
+    "CustomArticle": {
+      "title": "CustomArticle",
+      "description": "User-added custom health/dental news links, videos, Reels, or reading materials",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "contentDetail": { "type": "string" },
+        "sourceName": { "type": "string" },
+        "publishedAt": { "type": "string" },
+        "readTime": { "type": "string" },
+        "category": { "type": "string" },
+        "url": { "type": "string" },
+        "takeaways": { "type": "array" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "category", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Root user profile document (owner read/write, developer read-all)"
+    },
+    "/users/{userId}/habits/{habitId}": {
+      "schema": "Habit",
+      "description": "User specific daily oral hygiene habits"
+    },
+    "/users/{userId}/moods/{moodId}": {
+      "schema": "DailyMood",
+      "description": "Daylio tooth emotions and reflections"
+    },
+    "/users/{userId}/ohis/{ohisId}": {
+      "schema": "OhisRecord",
+      "description": "Clinical OHI-S calculations and tracking"
+    },
+    "/users/{userId}/custom_articles/{articleId}": {
+      "schema": "CustomArticle",
+      "description": "User-saved custom health/dental news, videos, links, and educational materials"
+    },
+    "/ai_knowledge/{docId}": {
+      "schema": "SharedAiKnowledge",
+      "description": "Collective cross-user anonymized chatbot intelligence & typing adaptation pool"
+    }
+  }
+}

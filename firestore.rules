@@ -1,0 +1,164 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDeveloper() {
+      return isAuthenticated() &&
+        request.auth.token.email == 'fight.vanzor30@gmail.com' &&
+        request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll(['userId', 'name', 'email', 'updatedAt']) &&
+        data.userId == userId &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 150 &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time &&
+        (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500)) &&
+        (!('streakDays' in data) || (data.streakDays is int && data.streakDays >= 0)) &&
+        (!('toothHealthPercent' in data) || (data.toothHealthPercent is int && data.toothHealthPercent >= 0 && data.toothHealthPercent <= 100)) &&
+        (!('toothStage' in data) || (data.toothStage is string && data.toothStage.size() <= 100)) &&
+        (!('level' in data) || (data.level is int && data.level >= 1)) &&
+        (!('completedHabitsCount' in data) || (data.completedHabitsCount is int && data.completedHabitsCount >= 0)) &&
+        (!('totalHabitsCount' in data) || (data.totalHabitsCount is int && data.totalHabitsCount >= 0)) &&
+        (!('latestOhisScore' in data) || data.latestOhisScore is number) &&
+        (!('latestOhisCategory' in data) || (data.latestOhisCategory is string && data.latestOhisCategory.size() <= 40)) &&
+        (!('isCalendarSynced' in data) || data.isCalendarSynced is bool) &&
+        (!('morningReminderTime' in data) || (data.morningReminderTime is string && data.morningReminderTime.size() <= 20)) &&
+        (!('nightReminderTime' in data) || (data.nightReminderTime is string && data.nightReminderTime.size() <= 20));
+    }
+
+    function isValidHabit(data, userId) {
+      return data.keys().hasAll(['userId', 'title', 'date', 'isCompleted', 'updatedAt']) &&
+        data.userId == userId &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+        data.date is string && data.date.size() >= 8 && data.date.size() <= 32 &&
+        data.isCompleted is bool &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time &&
+        (!('description' in data) || (data.description is string && data.description.size() <= 300)) &&
+        (!('timeOfDay' in data) || (data.timeOfDay is string && data.timeOfDay.size() <= 50)) &&
+        (!('iconKey' in data) || (data.iconKey is string && data.iconKey.size() <= 40)) &&
+        (!('category' in data) || (data.category is string && data.category.size() <= 40)) &&
+        (!('isBadHabit' in data) || data.isBadHabit is bool) &&
+        (!('orderIndex' in data) || data.orderIndex is int);
+    }
+
+    function isValidDailyMood(data, userId) {
+      return data.keys().hasAll(['userId', 'date', 'moodScore', 'moodLabel', 'updatedAt']) &&
+        data.userId == userId &&
+        data.date is string && data.date.size() >= 8 && data.date.size() <= 32 &&
+        data.moodScore is int && data.moodScore >= 1 && data.moodScore <= 5 &&
+        data.moodLabel is string && data.moodLabel.size() >= 1 && data.moodLabel.size() <= 60 &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time &&
+        (!('note' in data) || (data.note is string && data.note.size() <= 500)) &&
+        (!('moodSubEmoji' in data) || (data.moodSubEmoji is string && data.moodSubEmoji.size() <= 40)) &&
+        (!('dentalFeel' in data) || (data.dentalFeel is string && data.dentalFeel.size() <= 100)) &&
+        (!('activities' in data) || (data.activities is list && data.activities.size() <= 30));
+    }
+
+    function isValidOhisRecord(data, userId) {
+      return data.keys().hasAll(['userId', 'date', 'debrisScore', 'calculusScore', 'totalScore', 'category', 'updatedAt']) &&
+        data.userId == userId &&
+        data.date is string && data.date.size() >= 8 && data.date.size() <= 40 &&
+        data.debrisScore is number && data.debrisScore >= 0 && data.debrisScore <= 3.0 &&
+        data.calculusScore is number && data.calculusScore >= 0 && data.calculusScore <= 3.0 &&
+        data.totalScore is number && data.totalScore >= 0 && data.totalScore <= 6.0 &&
+        data.category is string && data.category.size() >= 1 && data.category.size() <= 40 &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time &&
+        (!('aiRecommendation' in data) || (data.aiRecommendation is string && data.aiRecommendation.size() <= 4000)) &&
+        (!('notes' in data) || (data.notes is string && data.notes.size() <= 500));
+    }
+
+    function isValidCustomArticle(data, userId) {
+      return data.keys().hasAll(['userId', 'title', 'category', 'updatedAt']) &&
+        data.userId == userId &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 160 &&
+        data.category is string && data.category.size() >= 1 && data.category.size() <= 40 &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time &&
+        (!('summary' in data) || (data.summary is string && data.summary.size() <= 400)) &&
+        (!('contentDetail' in data) || (data.contentDetail is string && data.contentDetail.size() <= 5000)) &&
+        (!('sourceName' in data) || (data.sourceName is string && data.sourceName.size() <= 120)) &&
+        (!('publishedAt' in data) || (data.publishedAt is string && data.publishedAt.size() <= 40)) &&
+        (!('readTime' in data) || (data.readTime is string && data.readTime.size() <= 40)) &&
+        (!('url' in data) || (data.url is string && data.url.size() <= 500)) &&
+        (!('takeaways' in data) || (data.takeaways is list && data.takeaways.size() <= 20));
+    }
+
+    // User profile document: owner can read/write; developer can read all users to monitor progress
+    match /users/{userId} {
+      allow list: if isDeveloper();
+      allow get: if isValidId(userId) && (isOwner(userId) || isDeveloper());
+      allow create, update: if isValidId(userId) && isOwner(userId) && isValidUserProfile(request.resource.data, userId);
+      allow delete: if isValidId(userId) && isOwner(userId);
+
+      // Habits subcollection
+      match /habits/{habitId} {
+        allow list: if isOwner(userId) || isDeveloper();
+        allow get: if isValidId(habitId) && (isOwner(userId) || isDeveloper());
+        allow create, update: if isValidId(habitId) && isOwner(userId) && isValidHabit(request.resource.data, userId);
+        allow delete: if isValidId(habitId) && isOwner(userId);
+      }
+
+      // Moods subcollection
+      match /moods/{moodId} {
+        allow list: if isOwner(userId) || isDeveloper();
+        allow get: if isValidId(moodId) && (isOwner(userId) || isDeveloper());
+        allow create, update: if isValidId(moodId) && isOwner(userId) && isValidDailyMood(request.resource.data, userId);
+        allow delete: if isValidId(moodId) && isOwner(userId);
+      }
+
+      // OHI-S subcollection
+      match /ohis/{ohisId} {
+        allow list: if isOwner(userId) || isDeveloper();
+        allow get: if isValidId(ohisId) && (isOwner(userId) || isDeveloper());
+        allow create, update: if isValidId(ohisId) && isOwner(userId) && isValidOhisRecord(request.resource.data, userId);
+        allow delete: if isValidId(ohisId) && isOwner(userId);
+      }
+
+      // User custom news/video/material sources subcollection
+      match /custom_articles/{articleId} {
+        allow list: if isOwner(userId) || isDeveloper();
+        allow get: if isValidId(articleId) && (isOwner(userId) || isDeveloper());
+        allow create, update: if isValidId(articleId) && isOwner(userId) && isValidCustomArticle(request.resource.data, userId);
+        allow delete: if isValidId(articleId) && isOwner(userId);
+      }
+    }
+
+    function isValidSharedAiKnowledge(data) {
+      return data.keys().hasAll(['lastContributorUid', 'totalCollectiveInteractions', 'updatedAt']) &&
+        data.lastContributorUid == request.auth.uid &&
+        data.totalCollectiveInteractions is int && data.totalCollectiveInteractions >= 0 &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time &&
+        (!('gueLoUsersCount' in data) || (data.gueLoUsersCount is int && data.gueLoUsersCount >= 0)) &&
+        (!('akuKamuUsersCount' in data) || (data.akuKamuUsersCount is int && data.akuKamuUsersCount >= 0)) &&
+        (!('shortStyleCount' in data) || (data.shortStyleCount is int && data.shortStyleCount >= 0)) &&
+        (!('wkwkCount' in data) || (data.wkwkCount is int && data.wkwkCount >= 0)) &&
+        (!('hahaCount' in data) || (data.hahaCount is int && data.hahaCount >= 0)) &&
+        (!('heheCount' in data) || (data.heheCount is int && data.heheCount >= 0)) &&
+        (!('knownSlang' in data) || (data.knownSlang is list && data.knownSlang.size() <= 40)) &&
+        (!('popularInterests' in data) || (data.popularInterests is list && data.popularInterests.size() <= 30)) &&
+        (!('learnedInsights' in data) || (data.learnedInsights is list && data.learnedInsights.size() <= 30)) &&
+        (!('topicCountsJson' in data) || (data.topicCountsJson is string && data.topicCountsJson.size() <= 2000));
+    }
+
+    // Shared anonymized collective AI brain accessible across all authenticated users
+    match /ai_knowledge/{docId} {
+      allow list: if false;
+      allow get: if isAuthenticated() && docId == 'global_brain';
+      allow create, update: if isAuthenticated() && docId == 'global_brain' && isValidSharedAiKnowledge(request.resource.data);
+      allow delete: if false;
+    }
+  }
+}
