@@ -2,6 +2,7 @@ package com.example.ui.screens
 
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -415,6 +416,12 @@ private fun AuthFeatureRow(
     }
 }
 
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 fun onGoogleSignInClicked(
     context: Context,
     credentialManager: CredentialManager,
@@ -435,7 +442,7 @@ fun onGoogleSignInClicked(
 
     scope.launch {
         try {
-            val activity = context as? Activity
+            val activity = context.findActivity()
                 ?: throw IllegalStateException("Context bukan Activity yang valid untuk Credential Manager")
             val result = credentialManager.getCredential(activity, request)
             val credential = result.credential
@@ -452,9 +459,19 @@ fun onGoogleSignInClicked(
         } catch (e: GetCredentialCancellationException) {
             Log.w("Auth", "Google Sign-In flow cancelled or dismissed: ${e.message}", e)
             onAuthCancelled()
+        } catch (e: androidx.credentials.exceptions.NoCredentialException) {
+            Log.w("Auth", "No Google credential available on device: ${e.message}", e)
+            onAuthError("Belum ada akun Google yang aktif di perangkat ini. Tambahkan akun Gmail di Pengaturan HP lalu coba lagi.")
         } catch (e: Exception) {
             Log.e("Auth", "Google Sign-In failed", e)
-            onAuthError(e.localizedMessage ?: "Gagal masuk dengan akun Gmail.")
+            val detail = e.localizedMessage ?: e.message
+            onAuthError(
+                if (!detail.isNullOrBlank()) {
+                    "Gagal masuk Gmail: $detail"
+                } else {
+                    "Gagal masuk dengan akun Gmail. Pastikan layanan Google Play & koneksi internet aktif."
+                }
+            )
         }
     }
 }
